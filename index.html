@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI Fairness Auditor - Detect and analyze bias in AI models with comprehensive fairness metrics and reporting.">
+  <title>AI Fairness Auditor | Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="bg-animation">
+    <div class="bg-orb"></div><div class="bg-orb"></div><div class="bg-orb"></div>
+  </div>
+
+  <!-- Auth Modal Overlay -->
+  <div class="auth-overlay active" id="auth-overlay">
+    <div class="auth-modal">
+      <div class="auth-logo">⚖️</div>
+      <h2 class="auth-title" id="auth-title">Welcome Back</h2>
+      <p class="auth-subtitle" id="auth-subtitle">Sign in to your FairAI Auditor account</p>
+
+      <!-- Login Form -->
+      <form class="auth-form" id="login-form" onsubmit="handleLogin(event)">
+        <div class="auth-field">
+          <label for="login-email">Email Address</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-icon">📧</span>
+            <input type="email" id="login-email" placeholder="admin@fairai.com" required>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Password</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-icon">🔒</span>
+            <input type="password" id="login-password" placeholder="Enter your password" required>
+          </div>
+        </div>
+        <div class="auth-options">
+          <label class="auth-remember"><input type="checkbox" checked> Remember me</label>
+          <a href="#" class="auth-forgot">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit" id="login-btn">🔓 Sign In</button>
+        <div class="auth-divider"><span>or continue with</span></div>
+        <div class="auth-social">
+          <button type="button" class="auth-social-btn" onclick="socialLogin('google')">🟢 Google</button>
+          <button type="button" class="auth-social-btn" onclick="socialLogin('github')">⚫ GitHub</button>
+        </div>
+        <p class="auth-switch">Don't have an account? <a href="#" onclick="toggleAuthMode('signup')">Sign Up</a></p>
+      </form>
+
+      <!-- Signup Form -->
+      <form class="auth-form" id="signup-form" style="display:none;" onsubmit="handleSignup(event)">
+        <div class="auth-field">
+          <label for="signup-name">Full Name</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-icon">👤</span>
+            <input type="text" id="signup-name" placeholder="John Doe" required>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="signup-email">Email Address</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-icon">📧</span>
+            <input type="email" id="signup-email" placeholder="you@company.com" required>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="signup-password">Password</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-icon">🔒</span>
+            <input type="password" id="signup-password" placeholder="Min. 8 characters" required minlength="8">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="signup-role">Role</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-icon">🏷️</span>
+            <select id="signup-role" required>
+              <option value="admin">Admin</option>
+              <option value="auditor">Auditor</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+        </div>
+        <div class="auth-options">
+          <label class="auth-remember"><input type="checkbox" required> I agree to the Terms of Service</label>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit" id="signup-btn">🚀 Create Account</button>
+        <div class="auth-divider"><span>or continue with</span></div>
+        <div class="auth-social">
+          <button type="button" class="auth-social-btn" onclick="socialLogin('google')">🟢 Google</button>
+          <button type="button" class="auth-social-btn" onclick="socialLogin('github')">⚫ GitHub</button>
+        </div>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="toggleAuthMode('login')">Sign In</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">⚖️</div>
+      <div><div class="sidebar-title">FairAI</div><div class="sidebar-subtitle">Auditor v2.0</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="upload" id="nav-upload">
+        <span class="icon">📤</span> Upload & Analyze
+      </div>
+      <div class="nav-section-label">Analysis</div>
+      <div class="nav-item" data-page="bias" id="nav-bias">
+        <span class="icon">🔍</span> Bias Detection
+      </div>
+      <div class="nav-item" data-page="metrics" id="nav-metrics">
+        <span class="icon">📈</span> Fairness Metrics
+      </div>
+      <div class="nav-item" data-page="reports" id="nav-reports">
+        <span class="icon">📋</span> Reports
+      </div>
+      <div class="nav-section-label">Settings</div>
+      <div class="nav-item" data-page="settings" id="nav-settings">
+        <span class="icon">⚙️</span> Configuration
+      </div>
+    </nav>
+    <div class="sidebar-footer" id="profile-trigger" onclick="toggleProfileMenu()">
+      <div class="user-avatar" id="user-avatar-display">AU</div>
+      <div class="user-info"><div class="user-name" id="user-name-display">Auditor</div><div class="user-role" id="user-role-display">Admin</div></div>
+      <span style="color:var(--text-muted);font-size:14px;">⋮</span>
+    </div>
+    <!-- Profile Dropdown -->
+    <div class="profile-dropdown" id="profile-dropdown">
+      <div class="profile-dropdown-header">
+        <div class="user-avatar" id="dropdown-avatar" style="width:48px;height:48px;font-size:18px;">AU</div>
+        <div><div class="user-name" id="dropdown-name">Auditor</div><div class="user-role" id="dropdown-email">admin@fairai.com</div></div>
+      </div>
+      <div class="profile-dropdown-divider"></div>
+      <div class="profile-dropdown-item" onclick="showProfile()">👤 My Profile</div>
+      <div class="profile-dropdown-item" onclick="navigateTo('settings')">⚙️ Settings</div>
+      <div class="profile-dropdown-item" onclick="showActivity()">📋 Activity Log</div>
+      <div class="profile-dropdown-divider"></div>
+      <div class="profile-dropdown-item logout" onclick="handleLogout()">🚪 Sign Out</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" id="menu-toggle" style="display:none;">☰</button>
+        <div class="breadcrumb">
+          <span>FairAI</span><span>/</span><span class="current" id="breadcrumb-page">Dashboard</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-box"><span class="icon">🔎</span><input type="text" placeholder="Search metrics..." id="search-input"></div>
+        <!-- Notification Button + Panel -->
+        <div class="notif-wrapper" id="notif-wrapper">
+          <button class="topbar-btn" id="notif-btn" onclick="toggleNotifications()">🔔<span class="notification-dot" id="notif-dot"></span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div class="notif-panel-header">
+              <span class="notif-panel-title">Notifications</span>
+              <button class="notif-clear-btn" onclick="clearNotifications()">Clear all</button>
+            </div>
+            <div class="notif-list" id="notif-list"></div>
+            <div class="notif-empty" id="notif-empty" style="display:none;">
+              <span style="font-size:32px;">🔕</span>
+              <p>No new notifications</p>
+            </div>
+          </div>
+        </div>
+        <!-- Theme Toggle -->
+        <button class="topbar-btn" id="theme-btn" onclick="toggleTheme()"><span id="theme-icon">🌙</span></button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- DASHBOARD PAGE -->
+      <section class="page-section active" id="page-dashboard">
+        <div class="section-header">
+          <h1>Fairness Dashboard</h1>
+          <p>Real-time overview of AI model fairness across all monitored systems</p>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">⚖️</div>
+              <span class="kpi-trend up">↑ 4.2%</span>
+            </div>
+            <div class="kpi-value" id="kpi-fairness">87.3%</div>
+            <div class="kpi-label">Overall Fairness Score</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">🛡️</div>
+              <span class="kpi-trend down">↓ 2.1%</span>
+            </div>
+            <div class="kpi-value" id="kpi-bias">12</div>
+            <div class="kpi-label">Bias Alerts Detected</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">📊</div>
+              <span class="kpi-trend up">↑ 8.5%</span>
+            </div>
+            <div class="kpi-value" id="kpi-models">24</div>
+            <div class="kpi-label">Models Audited</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">🎯</div>
+              <span class="kpi-trend neutral">~ 0.3%</span>
+            </div>
+            <div class="kpi-value" id="kpi-disparity">0.08</div>
+            <div class="kpi-label">Avg Disparity Index</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Fairness Trend</div><div class="card-subtitle">Last 12 months performance</div></div>
+              <div class="select-wrap"><select id="trend-period"><option>12 Months</option><option>6 Months</option><option>30 Days</option></select></div>
+            </div>
+            <div class="chart-canvas-wrap"><canvas id="chart-trend"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Bias Distribution</div><div class="card-subtitle">By protected attribute</div></div>
+            </div>
+            <div class="chart-canvas-wrap"><canvas id="chart-bias-dist"></canvas></div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Fairness by Category</div></div>
+            <div class="chart-bar-container" id="fairness-bars"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Recent Audits</div></div>
+            <div class="timeline" id="recent-audits"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Quick Stats</div></div>
+            <div id="quick-stats"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- UPLOAD PAGE -->
+      <section class="page-section" id="page-upload">
+        <div class="section-header">
+          <h1>Upload & Analyze</h1>
+          <p>Upload model data or images for fairness analysis</p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Upload File</div></div>
+            <div class="upload-zone" id="upload-zone">
+              <div id="upload-placeholder">
+                <div class="upload-icon">📁</div>
+                <h3>Drop files here or click to browse</h3>
+                <p>Supports images (PNG, JPG, WEBP), CSV, and JSON files up to 50MB</p>
+              </div>
+              <div class="upload-preview" id="upload-preview">
+                <img id="preview-img" alt="Preview">
+                <div class="upload-info">
+                  <div class="filename" id="preview-name"></div>
+                  <div class="filesize" id="preview-size"></div>
+                </div>
+                <div style="display:flex;gap:10px">
+                  <button class="btn btn-primary" id="analyze-btn" onclick="runAnalysis()">🔍 Analyze for Bias</button>
+                  <button class="btn btn-secondary" onclick="clearUpload()">✕ Clear</button>
+                </div>
+              </div>
+              <input type="file" id="file-input" accept="image/*,.csv,.json">
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Analysis Configuration</div></div>
+            <div style="display:flex;flex-direction:column;gap:18px;">
+              <div>
+                <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Model Type</label>
+                <div class="select-wrap"><select id="model-type" style="width:100%">
+                  <optgroup label="🖼️ Classification">
+                    <option>Image Classification</option>
+                    <option>Video Classification</option>
+                    <option>Audio Classification</option>
+                    <option>Text Classification</option>
+                    <option>Document Classification</option>
+                    <option>Scene Classification</option>
+                    <option>Action Classification</option>
+                    <option>Emotion Classification</option>
+                    <option>Gesture Classification</option>
+                    <option>Pose Classification</option>
+                    <option>Multi-label Classification</option>
+                  </optgroup>
+                  <optgroup label="🔍 Detection & Recognition">
+                    <option>Object Detection</option>
+                    <option>Facial Recognition</option>
+                    <option>Speech Recognition</option>
+                    <option>Anomaly Detection</option>
+                    <option>Fraud Detection</option>
+                  </optgroup>
+                  <optgroup label="📝 Language & Text">
+                    <option>NLP / Text Model</option>
+                    <option>Sentiment Analysis</option>
+                    <option>Generative AI (LLM)</option>
+                    <option>Machine Translation</option>
+                  </optgroup>
+                  <optgroup label="🏥 Domain-Specific">
+                    <option>Recommendation System</option>
+                    <option>Autonomous Driving</option>
+                    <option>Medical Diagnosis</option>
+                    <option>Credit Scoring</option>
+                  </optgroup>
+                </select></div>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Protected Attributes</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;" id="attr-checks">
+                  <label class="toggle-wrap"><div class="toggle active" data-attr="gender"></div><span class="toggle-label">Gender</span></label>
+                  <label class="toggle-wrap"><div class="toggle active" data-attr="race"></div><span class="toggle-label">Race</span></label>
+                  <label class="toggle-wrap"><div class="toggle" data-attr="age"></div><span class="toggle-label">Age</span></label>
+                  <label class="toggle-wrap"><div class="toggle" data-attr="disability"></div><span class="toggle-label">Disability</span></label>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Fairness Threshold</label>
+                <input type="range" id="threshold-slider" min="0" max="100" value="80" style="width:100%;accent-color:var(--accent-blue);">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+                  <span>Lenient (0%)</span><span id="threshold-val">80%</span><span>Strict (100%)</span>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Analysis Depth</label>
+                <div class="tabs" id="depth-tabs">
+                  <button class="tab" data-depth="quick">Quick</button>
+                  <button class="tab active" data-depth="standard">Standard</button>
+                  <button class="tab" data-depth="deep">Deep</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" id="analysis-results" style="display:none;">
+          <div class="card-header"><div class="card-title">Analysis Results</div></div>
+          <div id="results-content"></div>
+        </div>
+      </section>
+
+      <!-- BIAS DETECTION PAGE -->
+      <section class="page-section" id="page-bias">
+        <div class="section-header">
+          <h1>Bias Detection</h1>
+          <p>Detailed breakdown of detected biases across protected attributes</p>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon">👤</div><span class="kpi-trend down">High</span></div><div class="kpi-value">0.23</div><div class="kpi-label">Gender Disparity</div></div>
+          <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon">🌍</div><span class="kpi-trend down">Med</span></div><div class="kpi-value">0.18</div><div class="kpi-label">Racial Disparity</div></div>
+          <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon">📅</div><span class="kpi-trend neutral">Low</span></div><div class="kpi-value">0.05</div><div class="kpi-label">Age Disparity</div></div>
+          <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon">♿</div><span class="kpi-trend up">Min</span></div><div class="kpi-value">0.02</div><div class="kpi-label">Disability Disparity</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Bias Radar</div></div>
+            <div class="chart-canvas-wrap"><canvas id="chart-radar"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Intersectional Analysis</div></div>
+            <div class="chart-canvas-wrap"><canvas id="chart-intersect"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><div class="card-title">Bias Alert Log</div></div>
+          <table class="data-table" id="bias-table">
+            <thead><tr><th>Timestamp</th><th>Model</th><th>Attribute</th><th>Severity</th><th>Disparity</th><th>Status</th></tr></thead>
+            <tbody id="bias-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- METRICS PAGE -->
+      <section class="page-section" id="page-metrics">
+        <div class="section-header">
+          <h1>Fairness Metrics</h1>
+          <p>Comprehensive fairness metrics following industry standards</p>
+        </div>
+        <div class="tabs" id="metric-tabs">
+          <button class="tab active" data-metric="demographic">Demographic Parity</button>
+          <button class="tab" data-metric="equalized">Equalized Odds</button>
+          <button class="tab" data-metric="calibration">Calibration</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Metric Comparison</div></div>
+            <div class="chart-canvas-wrap"><canvas id="chart-metrics"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Score Breakdown</div></div>
+            <div id="metrics-breakdown"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><div><div class="card-title">Detailed Metric Values</div></div></div>
+          <table class="data-table">
+            <thead><tr><th>Metric</th><th>Group A</th><th>Group B</th><th>Difference</th><th>Ratio</th><th>Status</th></tr></thead>
+            <tbody id="metric-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- REPORTS PAGE -->
+      <section class="page-section" id="page-reports">
+        <div class="section-header">
+          <h1>Reports</h1>
+          <p>Generate and download fairness audit reports</p>
+        </div>
+        <div class="grid-3">
+          <div class="card" style="text-align:center;cursor:pointer;" onclick="generateReport('summary')">
+            <div style="font-size:48px;margin-bottom:12px;">📊</div>
+            <div class="card-title">Summary Report</div>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:6px;">High-level overview of fairness metrics</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;">Generate</button>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer;" onclick="generateReport('detailed')">
+            <div style="font-size:48px;margin-bottom:12px;">📋</div>
+            <div class="card-title">Detailed Report</div>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:6px;">In-depth analysis with recommendations</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;">Generate</button>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer;" onclick="generateReport('compliance')">
+            <div style="font-size:48px;margin-bottom:12px;">✅</div>
+            <div class="card-title">Compliance Report</div>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:6px;">Regulatory compliance documentation</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;">Generate</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><div class="card-title">Report History</div></div>
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Report Type</th><th>Models</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="report-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SETTINGS PAGE -->
+      <section class="page-section" id="page-settings">
+        <div class="section-header">
+          <h1>Configuration</h1>
+          <p>Configure auditing parameters and preferences</p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">General Settings</div></div>
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <label class="toggle-wrap"><div class="toggle active" id="toggle-auto"></div><span class="toggle-label">Auto-audit new models</span></label>
+              <label class="toggle-wrap"><div class="toggle active" id="toggle-alerts"></div><span class="toggle-label">Email alerts on bias detection</span></label>
+              <label class="toggle-wrap"><div class="toggle" id="toggle-dark"></div><span class="toggle-label">Dark mode (always on)</span></label>
+              <label class="toggle-wrap"><div class="toggle active" id="toggle-weekly"></div><span class="toggle-label">Weekly summary reports</span></label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Threshold Settings</div></div>
+            <div style="display:flex;flex-direction:column;gap:18px;">
+              <div><label style="font-size:12px;color:var(--text-secondary);">Disparity Threshold</label>
+                <input type="range" min="0" max="50" value="10" style="width:100%;accent-color:var(--accent-blue);margin-top:6px;">
+                <span style="font-size:12px;color:var(--text-muted);">Current: 0.10</span></div>
+              <div><label style="font-size:12px;color:var(--text-secondary);">Min Sample Size</label>
+                <input type="range" min="10" max="1000" value="100" style="width:100%;accent-color:var(--accent-purple);margin-top:6px;">
+                <span style="font-size:12px;color:var(--text-muted);">Current: 100</span></div>
+              <div><label style="font-size:12px;color:var(--text-secondary);">Confidence Level</label>
+                <input type="range" min="80" max="99" value="95" style="width:100%;accent-color:var(--accent-green);margin-top:6px;">
+                <span style="font-size:12px;color:var(--text-muted);">Current: 95%</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
